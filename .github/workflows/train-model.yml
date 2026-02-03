@@ -48,3 +48,24 @@ jobs:
           path: |
             models/**
             train_log.txt
+
+      - name: Commit trained models to repo (models-artifacts branch)
+        if: always()
+        shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -d models ]; then
+            echo "Found models folder, committing to 'models-artifacts' branch"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git fetch origin || true
+            git checkout -B models-artifacts
+            git add models || true
+            git commit -m "Add trained model artifacts [skip ci]" || echo "No changes to commit"
+            # set remote with token for push
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+            git push --set-upstream origin models-artifacts --force
+          else
+            echo "No models directory to commit"
+          fi
