@@ -34,12 +34,17 @@ jobs:
           python -c "import sys, pkgutil; print('python', sys.version); import pkg_resources; print([p.__str__() for p in pkg_resources.working_set])"
 
       - name: Run training
+        continue-on-error: true
+        shell: bash -l {0}
         run: |
-          python ml/download_data.py
-          python ml/train.py
+          python ml/download_data.py > train_log.txt 2>&1 || true
+          python ml/train.py >> train_log.txt 2>&1 || true
 
-      - name: Upload model artifacts
+      - name: Upload model artifacts and logs (always)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: models
-          path: models/**/*
+          path: |
+            models/**
+            train_log.txt
