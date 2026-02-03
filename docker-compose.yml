@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./backend:/app
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  trainer:
+    build:
+      context: .
+      dockerfile: trainer/Dockerfile
+    volumes:
+      - ./models:/app/models
+    # trainer runs once to create model artifacts, then exits
+    restart: 'no'
