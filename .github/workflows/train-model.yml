@@ -25,10 +25,13 @@ jobs:
       - name: Install dependencies (conda + pip)
         shell: bash -l {0}
         run: |
-          # install core binary packages with conda to avoid build tool issues
-          conda install -y scikit-learn=1.3.2 pandas numpy
+          # install core binary packages with conda and conda-forge (shap often needs binaries)
+          conda install -y -c conda-forge scikit-learn=1.3.2 pandas numpy shap
           python -m pip install --upgrade pip setuptools wheel
-          pip install --prefer-binary -r backend/requirements.txt
+          # install remaining packages via pip but do not rebuild already provided binary packages
+          pip install --no-deps -r backend/requirements.txt
+          # show installed packages for debugging
+          python -c "import sys, pkgutil; print('python', sys.version); import pkg_resources; print([p.__str__() for p in pkg_resources.working_set])"
 
       - name: Run training
         run: |
